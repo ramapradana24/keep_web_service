@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\User;
+use Hash;
 
 class AuthController extends Controller
 {
@@ -17,11 +18,12 @@ class AuthController extends Controller
     				'msg'		=> 'Username has been used by other person.'
     			], 200);
     		}
+
     		$user = new User;
 	    	$user->user_name = $request->name;
 	    	$user->user_username = $request->username;
 	    	$user->user_email = $request->email;
-	    	$user->user_password = $request->password;
+	    	$user->user_password = bcrypt($request->password);
 	    	$user->save();	
 
 	    	return response()->json([
@@ -40,16 +42,23 @@ class AuthController extends Controller
     public function login(Request $request){
     	try{
     		$user = User::where('user_username', '=', $request->username)
-    			->where('user_password', $request->password)
     			->whereNull('user_access_token')
     			->first();
 
     		if (empty($user)) {
     			return response()->json([
     				'status'	=> false,
-    				'msg'		=> 'Username or Password do not match.'
+    				'msg'		=> 'user not found.'
     			], 200);
     		}
+            
+
+            if (Hash::check($request->password, $user->user_password) == false) {
+                return response()->json([
+                    'status'    => false,
+                    'msg'       => 'Wrong password.'
+                ], 200);   
+            }
 
     		$user->user_access_token = bcrypt(uniqid());
     		$user->save();

@@ -22,3 +22,10 @@ Route::middleware('emptyRequest')->group(function(){
 	Route::get('login', 'AuthController@login')->name('api.login');
 	Route::get('logout', 'AuthController@logout')->name('api.logout');
 });
+
+Route::middleware(['verifyUserToken'])->group(function(){
+	Route::post('profile', 'UserController@updateProfile')->name('profile.update');
+	Route::prefix('event')->group(function(){
+		Route::post('/', 'EventController@createEvent')->name('event.create');
+	});
+});
