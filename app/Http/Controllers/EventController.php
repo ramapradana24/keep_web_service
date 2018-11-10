@@ -41,6 +41,15 @@ class EventController extends Controller
     }
 
     function showEvent(Request $request){
-    	return $request;
+        $user = User::where('user_access_token', $request->access_token)->first();
+
+        $events = Event::whereHas('userEvent', function($q) use ($user){
+            $q->where('user_id', $user->user_id);
+        })->withCount('eventFile')->get();
+
+        return response()->json([
+            'status'    => true,
+            'events'      => $events
+        ]);
     }
 }

@@ -26,6 +26,7 @@ Route::middleware('emptyRequest')->group(function(){
 Route::middleware(['verifyUserToken'])->group(function(){
 	Route::post('profile', 'UserController@updateProfile')->name('profile.update');
 	Route::prefix('event')->group(function(){
-		Route::post('/', 'EventController@createEvent')->name('event.create');
+		Route::get('/', 'EventController@showEvent')->name('event.show');
+		Route::post('create', 'EventController@createEvent')->name('event.create');
 	});
 });
