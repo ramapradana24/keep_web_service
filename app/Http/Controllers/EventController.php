@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Event;
 use App\UserEvent;
 use App\User;
+use Validator;
+use App\EventFile;
 
 class EventController extends Controller
 {
@@ -35,7 +37,11 @@ class EventController extends Controller
 
     	return response()->json([
     		'status'	=> true,
-    		'msg'		=> "Success create new event. Let's start to save your file or note here"
+    		'msg'		=> "Success create new event. Let's start to save your file or note here",
+            'event_id'  => $event->event_id,
+            'event_name' => $event->event_name,
+            'created_at' => date('Y-m-d H:i:s'),
+            'file_count' => 0
     	]);
 
     }
@@ -45,11 +51,91 @@ class EventController extends Controller
 
         $events = Event::whereHas('userEvent', function($q) use ($user){
             $q->where('user_id', $user->user_id);
-        })->withCount('eventFile')->get();
+        })->withCount('eventFile')
+        ->orderBy('event_id', 'desc')
+        ->get();
 
         return response()->json([
             'status'    => true,
             'events'      => $events
+        ]);
+    }
+
+    public function updateEvent(Request $request){
+        $validator = Validator::make($request->all(),[
+            'id' => 'required',
+            'name'  => 'required',
+            'access_token' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'    => false,
+                'msg'       => 'Bad Request'
+            ]);
+        }
+
+        $user = User::where('user_access_token', $request->access_token)->first();
+        
+        if (empty($user)) {
+            return response()->json([
+                'status'    => false,
+                'msg'       => 'User not found.'
+            ]);
+        }
+
+        $event = Event::whereHas('userEvent', function($q) use ($user){
+            $q->where('user_id', $user->user_id);
+        })->find($request->id);
+
+        if (empty($event)) {
+            return response()->json([
+                'status'    => false,
+                'msg'       => 'Event not found'
+            ]);   
+        }
+
+        $event->event_name = $request->name;
+        if ($event->save()) {
+            return response()->json([
+                'status'    => true,
+                'msg'       => 'Event name changed.'
+            ]);
+        }
+    }
+
+    public function showFile($id, Request $request){
+        $user = User::where('user_access_token', $request->access_token)->first();
+
+        if(empty($user)){
+            return response()->json([
+                'status'    => false,
+                'msg'       => "User not found."
+            ]);
+        }
+
+
+        $eventFile = EventFile::
+            join('tb_event', 'tb_event.event_id', '=', 'tb_eventfile.event_id')
+            ->join('tb_userevent', 'tb_userevent.event_id', '=', 'tb_event.event_id')
+            ->where([
+                'tb_eventfile.event_id' => $id,
+                'user_id'   => $user->user_id
+            ])
+            ->select('eventfile_id', 'tb_event.event_id', 'eventfile_title', 'eventfile_content', 'eventfile_format', 'upload_by', 'tb_eventfile.created_at')
+            ->get();
+        
+        if(empty($eventFile[0])){
+            return response()->json([
+                'status'    => false,
+                'msg'       => "There is no file or note uploaded yet!"
+            ]);
+        }
+
+        return response()->json([
+            'status'    => true,
+            'msg'       => 'Request success!',
+            'file'      => $eventFile
         ]);
     }
 }

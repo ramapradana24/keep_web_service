@@ -21,7 +21,7 @@ class VerifyUserToken
             return response()->json([
                 'status' => false,
                 'msg'    => 'Token is not valid.'
-            ], 500);
+            ]);
         }
         return $next($request);
     }

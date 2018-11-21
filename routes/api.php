@@ -28,5 +28,8 @@ Route::middleware(['verifyUserToken'])->group(function(){
 	Route::prefix('event')->group(function(){
 		Route::get('/', 'EventController@showEvent')->name('event.show');
 		Route::post('create', 'EventController@createEvent')->name('event.create');
+		Route::post('update', 'EventController@updateEvent')->name('event.update');
+		Route::post('new', 'EventFileController@store')->name('eventfile.store');
+		Route::get('{id}', 'EventController@showFile')->name('event.file');
 	});
 });

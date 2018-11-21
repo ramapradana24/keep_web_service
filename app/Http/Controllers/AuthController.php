@@ -42,7 +42,6 @@ class AuthController extends Controller
     public function login(Request $request){
     	try{
     		$user = User::where('user_username', '=', $request->username)
-    			->whereNull('user_access_token')
     			->first();
 
     		if (empty($user)) {
@@ -60,7 +59,7 @@ class AuthController extends Controller
                 ], 200);   
             }
 
-    		$user->user_access_token = bcrypt(uniqid());
+    		$user->user_access_token = uniqid();
     		$user->save();
 
     		return response()->json([
