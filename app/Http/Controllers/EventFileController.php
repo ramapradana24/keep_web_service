@@ -56,5 +56,130 @@ class EventFileController extends Controller
                 'createdAt' => $file->created_at
             ]);
         }
+
+        //upload file
+        $validator = Validator::make($request->all(), [
+            'access_token'  => 'required',
+            'event_id'      => 'required',
+            'file'          => 'required'
+        ]);
+        
+        $user = User::where('user_access_token', $request->access_token)->first();
+        if(empty($user)){
+            return response()->json([
+                'status'    => false,
+                'msg'       => 'User unknown.'
+            ]);
+        }
+
+        if($validator->fails()){
+            return response()->json([
+                'status'    => false,
+                'msg'       => 'Bad Request!'
+            ]);
+        }
+
+        $contentList = collect([
+            ['format' => 'doc', 'content' => 'Word Document'],
+            ['format' => 'docx', 'content' => 'Word Dosument' ],
+            ['format' => 'txt', 'content' => 'Text File' ],
+            ['format' => 'png', 'content' => 'Image File' ],
+            ['format' => 'jpg', 'content' => 'Image File' ],
+            ['format' => 'jpeg', 'content' => 'Image File' ],
+            ['format' => 'bmp', 'content' => 'Image File' ],
+            ['format' => 'ppt', 'content' => 'Power Point Document' ],
+            ['format' => 'pptx', 'content' => 'Power Point Document' ],
+            ['format' => 'pdf', 'content' => 'PDF File' ],
+            ['format' => 'mp3', 'content' => 'Music' ],
+            ['format' => 'mp4', 'content' => 'Video/Movie' ],
+            ['format' => 'mkv', 'content' => 'Video/Movie' ],
+            ['format' => 'html', 'content' => 'Hyper Text Markup Language' ],
+            ['format' => 'rar', 'content' => 'Compressed File' ],
+            ['format' => 'zip', 'content' => 'Compressed File' ],
+        ]);
+
+        if($request->hasFile("file")){
+            $filename = $request->file("file")->getClientOriginalName();
+            $format = $request->file('file')->getClientOriginalExtension();
+            $content = $contentList->where('format', $format)->first()['content'];
+            if(empty($content)){
+                $content = 'Unknown File Format';
+            }
+
+            $onServerFileName = $user->user_id.'_'.uniqid().'.'.$format;
+
+            $eventFile = new EventFile;
+            $eventFile->event_id = $request->event_id;
+            $eventFile->eventfile_title = $filename;
+            $eventFile->eventfile_content = $content;
+            $eventFile->eventfile_format = $format;
+            $eventFile->onserver_filename = $onServerFileName;
+            $eventFile->upload_by = $user->user_id;
+            if($eventFile->save()){
+                EventFile::uploadFile($request->file('file'), $onServerFileName);
+            }
+            
+            return response()->json([
+                'status'    => true,
+                'msg'       => "file uploaded with server name " . $onServerFileName
+            ]);
+        }
     }
+
+    public function updateNote($id, Request $request){
+        $validator = Validator::make($request->all(), [
+            'access_token'  => 'required',
+            'title'         => 'required',
+            'content'       => 'required'
+        ]);
+
+        if($validator->fails()){
+            return response()->json([
+                'status' => false,
+                'mag'    => "Bad Request!"
+            ]);
+        }
+
+        $user = User::where('user_access_token', $request->access_token)->first();
+        if(empty($user)){
+            return response()->json([
+                'status'    => false,
+                'msg'       => 'User not found.'
+            ]);
+        }
+
+        $file = EventFile::
+            join('tb_event', 'tb_event.event_id', '=', 'tb_eventfile.event_id')
+            ->join('tb_userevent', 'tb_userevent.event_id', '=', 'tb_event.event_id')
+            ->where([
+                'tb_eventfile.eventfile_id' => $id,
+                'user_id'   => $user->user_id
+            ])
+            ->first();
+        
+        if(empty($file)){
+            return response()->json([
+                'status'    => false,
+                'msg'       => 'You cant update this note!'
+            ]);
+        }
+
+        $eventfile = EventFile::find($id);
+        $eventfile->eventfile_title = $request->title;
+        $eventfile->eventfile_content = $request->content;
+        if($eventfile->save()){
+            return response()->json([
+                'status'    => true,
+                'msg'       => 'Success updating note!'
+            ]);
+        }
+
+        return response()->json([
+            'status'    => false,
+            'msg'       => 'Failed to update this note!'
+        ]);
+
+        
+    }
+
 }

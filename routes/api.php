@@ -31,5 +31,12 @@ Route::middleware(['verifyUserToken'])->group(function(){
 		Route::post('update', 'EventController@updateEvent')->name('event.update');
 		Route::post('new', 'EventFileController@store')->name('eventfile.store');
 		Route::get('{id}', 'EventController@showFile')->name('event.file');
+		Route::post('/note/{id}', 'EventFileController@updateNote')->name('file.note');
 	});
+
+	Route::prefix('user')->group(function(){
+		Route::get('search/{username}', 'FriendController@search')->name('friend.search');
+		Route::post('/add/{userid}', 'FriendController@add')->name('friend.add');
+	});
+
 });
