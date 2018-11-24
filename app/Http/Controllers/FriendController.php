@@ -70,4 +70,27 @@ class FriendController extends Controller
             ]);
         }
     }
+
+    public function friends(Request $request){
+        $user = User::where('user_access_token', $request->access_token)->first();
+        if(empty($user)){
+            return response()->json([
+                'status'    => false,
+                'msg'       => 'User not found or not authenticated.'
+            ]);
+        }
+
+        $friends = Friendship::
+            where('user_id', $user->user_id)
+            ->selectRaw('friendship_id, user_friend_id as user_id')
+            ->get();
+        
+        $friendMore = Friendship::
+            where('user_friend_id', $user->user_id)
+            ->selectRaw('friendship_id, user_friend_id as user_id')
+            ->get();
+        
+        $friends->concat($friendMore);
+        return $friends;
+    }
 }

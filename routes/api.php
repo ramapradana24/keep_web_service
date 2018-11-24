@@ -39,4 +39,6 @@ Route::middleware(['verifyUserToken'])->group(function(){
 		Route::post('/add/{userid}', 'FriendController@add')->name('friend.add');
 	});
 
+	Route::get('friend', 'FriendController@friends')->name('friend.mine');
+
 });
