@@ -7,6 +7,8 @@ use Validator;
 use App\EventFile;
 use App\User;
 use App\Event;
+use File;
+
 
 class EventFileController extends Controller
 {
@@ -182,4 +184,32 @@ class EventFileController extends Controller
         
     }
 
+    public function delete($id, Request $request){
+        $user = User::where('user_access_token', $request->access_token)->first();
+        $file = EventFile::
+            join('tb_event', 'tb_event.event_id', '=', 'tb_eventfile.event_id')
+            ->join('tb_userevent', 'tb_userevent.event_id', '=', 'tb_event.event_id')
+            ->where([
+                'eventfile_id' => $id,
+                'tb_userevent.user_id' => $user->user_id
+            ])->first();
+        
+        if(empty($file)){
+            return response()->json([
+                'status'    => false,
+                'msg'       => 'You cant delete this file or note.'   
+            ]);
+        }
+
+        if($file->onserver_filename != null){
+            File::delete(EventFile::$dir.'/'.$file->onserver_filename);
+        }
+        
+        $file->delete();
+        return response()->json([
+            'status'    => true,
+            'msg'       => 'File or note has been deleted'
+        ]);
+
+    }
 }

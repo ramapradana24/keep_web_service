@@ -12,7 +12,7 @@ class FriendController extends Controller
         $user = User::where("user_access_token", $request->access_token)->first();
         $userSearch = User::where('user_username', $username)
             ->where('user_id', '<>', $user->user_id)
-            ->select('user_id', 'user_username', 'user_name')
+            ->select('user_id', 'user_username', 'user_name', 'user_email')
             ->first();
         if(empty($userSearch)){
             return response()->json([
@@ -56,7 +56,7 @@ class FriendController extends Controller
         if(!empty($friend)){
             return response()->json([
                 'status'    => false,
-                'msg'       => "You are friend!"
+                'msg'       => "You are already friend!"
             ]);
         }
 
@@ -81,16 +81,22 @@ class FriendController extends Controller
         }
 
         $friends = Friendship::
-            where('user_id', $user->user_id)
-            ->selectRaw('friendship_id, user_friend_id as user_id')
+            join('tb_user', 'tb_user.user_id', '=', 'tb_friendship.user_friend_id')
+            ->where('tb_friendship.user_id', $user->user_id)
+            ->selectRaw('user_friend_id as user_id, user_username, user_name, user_email')
             ->get();
         
         $friendMore = Friendship::
-            where('user_friend_id', $user->user_id)
-            ->selectRaw('friendship_id, user_friend_id as user_id')
+            join('tb_user', 'tb_user.user_id', '=', 'tb_friendship.user_id')
+            ->where('tb_friendship.user_friend_id', $user->user_id)
+            ->selectRaw('user_friend_id as user_id, user_username, user_name, user_email')
             ->get();
         
         $friends->concat($friendMore);
-        return $friends;
+        return response()->json([
+            'status' => true,
+            'msg'    => "Request success!",
+            'user'   => $friends
+        ]);
     }
 }

@@ -138,4 +138,56 @@ class EventController extends Controller
             'file'      => $eventFile
         ]);
     }
+
+    public function delete(Request $request){
+        $user = User::where('user_access_token', $request->access_token)->first();
+        $event = Event::
+            join('tb_userevent', 'tb_userevent.event_id', '=', 'tb_event.event_id')
+            ->where([
+                'tb_event.event_id' => $request->event_id,
+                'user_id'   => $user->user_id
+            ])->first();
+
+        if(empty($event)){
+            return response()->json([
+                'status'    => false,
+                'msg'       => 'You cant delete this event.'
+            ]);
+        }
+
+        //deleting all note
+        EventFile::where([
+            'event_id' => $event->event_id,
+            'eventfile_format'  => 'note'
+        ])->delete();
+
+        //get all file to delete
+        $file = EventFile::where('event_id', $event->event_id)
+            ->get();
+        foreach($file as $f){
+            File::delete(EventFile::$dir.'/'.$f->onserver_filename);
+            $f->delete();    
+        }
+
+        $event->delete();
+        return response()->json([
+            'status'    => true,
+            'msg'       => 'Event is deleted.'
+        ]);
+        
+    }
+
+    public function user($id){
+        //user in this event
+        $users = UserEvent::where("event_id", $id)
+            ->join('tb_user', 'tb_user.user_id', '=', 'tb_userevent.user_id')
+            ->select('tb_user.user_id', 'user_name', 'user_username')
+            ->get();
+        
+        return response()->json([
+            'status'    => true,
+            'msg'       => 'Request success!',
+            'users'     => $users
+        ]);
+    }
 }
