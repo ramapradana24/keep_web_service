@@ -195,10 +195,17 @@ class EventController extends Controller
         $user = User::where('user_access_token', $request->access_token)->first();
 
         foreach($request->users as $usr){
-            $userEvent = new UserEvent;
-            $userEvent->user_id = $usr;
-            $userEvent->event_id = $eventId;
-            $userEvent->save();
+            $check = UserEvent::where([
+                'user_id'   => $usr,
+                'event_id'  => $eventId
+            ])->first();
+
+            if(empty($check)){
+                $userEvent = new UserEvent;
+                $userEvent->user_id = $usr;
+                $userEvent->event_id = $eventId;
+                $userEvent->save();
+            }
         }
 
         return response()->json([
