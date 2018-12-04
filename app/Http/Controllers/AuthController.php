@@ -59,7 +59,8 @@ class AuthController extends Controller
                 ], 200);   
             }
 
-    		$user->user_access_token = uniqid();
+			$user->user_access_token = uniqid();
+			$user->user_fcm = $request->fcm;
     		$user->save();
 
     		return response()->json([
