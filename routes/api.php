@@ -35,6 +35,7 @@ Route::middleware(['verifyUserToken'])->group(function(){
 		Route::post('/file/{id}/delete', 'EventFileController@delete')->name('file.delete');
 		Route::post('/delete', 'EventController@delete')->name('event.delete');
 		Route::get('/users/{id}', 'EventController@user')->name('event.users');
+		Route::get('/invite/{eventId}', 'EventController@user')->name('event.invite');
 	});
 
 	Route::prefix('user')->group(function(){

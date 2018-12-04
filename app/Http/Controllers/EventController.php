@@ -190,4 +190,20 @@ class EventController extends Controller
             'users'     => $users
         ]);
     }
+
+    public function invite(Request $request, $eventId){
+        $user = User::where('user_access_token', $request->access_token)->first();
+
+        foreach($request->users as $usr){
+            $userEvent = new UserEvent;
+            $userEvent->user_id = $usr;
+            $userEvent->event_id = $eventId;
+            $userEvent->save();
+        }
+
+        return response()->json([
+            'status'    => true,
+            'msg'       => 'Success invite friend!'
+        ]);
+    }
 }
