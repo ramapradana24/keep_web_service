@@ -44,5 +44,6 @@ Route::middleware(['verifyUserToken'])->group(function(){
 	});
 
 	Route::get('friend', 'FriendController@friends')->name('friend.mine');
+	Route::get('download/{id}', 'EventFileController@download')->name('file.download');
 
 });

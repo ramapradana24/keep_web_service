@@ -212,4 +212,12 @@ class EventFileController extends Controller
         ]);
 
     }
+
+    public function download($id){
+        $file = EventFile::find($id);
+
+        $filePath = public_path() . "/file/" . $file->onserver_filename;
+        $header = array('Content-Type: application/*');
+        return response()->download($filePath, $file->eventfile_title, $header);
+    }
 }
