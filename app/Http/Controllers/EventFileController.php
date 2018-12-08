@@ -12,6 +12,9 @@ use File;
 
 class EventFileController extends Controller
 {
+    private $API_KEY = 'AIzaSyCV4FAcIMDS28I0fKfjqHP_uOKn8BvlvNc';
+    private $FCM_URL = 'https://fcm.googleapis.com/fcm/send';
+
     public function store(Request $request){
         if(!$request->hasFile("file")){
             $validator = Validator::make($request->all(),[
@@ -121,6 +124,40 @@ class EventFileController extends Controller
                 EventFile::uploadFile($request->file('file'), $onServerFileName);
             }
             
+            #grab all user in this event;
+            $users = UserEvent::
+                join('tb_user', 'tb_user.user_id', '=', 'tb_userevent.user_id')
+                ->where('event_id', $request->event_id)
+                ->select('user_id', 'user_fcm')
+                ->get();
+            
+            if($users->count() > 1){
+                $headers = array(
+                    'Authorization: key='.$this->API_KEY,
+                    'Content-Type: application/json'
+                );
+
+                $fields = array(
+                    // 'to' => $token,
+                    'registration_ids'=>$users->pluck("user_fcm"),
+                    'notification' => array(
+                        'title' => 'Keep',
+                        'body' => $user->user_name . ' recently added new '. $eventFile->eventfile_title .' in ' . Event::find($request->event_id)->event_name,
+                        'sound'=>'default'
+                    )
+                );
+
+                $curl_session = curl_init();
+                curl_setopt($curl_session, CURLOPT_URL,$FCM_URL);
+                curl_setopt($curl_session, CURLOPT_POST, true);
+                curl_setopt($curl_session, CURLOPT_HTTPHEADER, $headers);
+                curl_setopt($curl_session, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($curl_session, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($curl_session, CURLOPT_POSTFIELDS, json_encode($fields));
+                $result = curl_exec($curl_session);
+                curl_close($curl_session);
+            }
+
             return response()->json([
                 'status'    => true,
                 'msg'       => "file uploaded with server name " . $onServerFileName

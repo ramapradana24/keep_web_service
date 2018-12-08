@@ -59,7 +59,10 @@ class AuthController extends Controller
                 ], 200);   
             }
 
-			$user->user_access_token = uniqid();
+			if($user->user_access_token == null){
+				$user->user_access_token = uniqid();
+			}
+			
 			$user->user_fcm = $request->fcm;
     		$user->save();
 
