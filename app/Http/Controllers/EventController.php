@@ -52,6 +52,7 @@ class EventController extends Controller
         $events = Event::whereHas('userEvent', function($q) use ($user){
             $q->where('user_id', $user->user_id);
         })->withCount('eventFile')
+        ->withCount('userEvent')
         ->orderBy('event_id', 'desc')
         ->get();
 
