@@ -166,7 +166,7 @@ class EventController extends Controller
         $file = EventFile::where('event_id', $event->event_id)
             ->get();
         foreach($file as $f){
-            File::delete(EventFile::$dir.'/'.$f->onserver_filename);
+            File::delete(public_path().'/'.EventFile::$dir.'/'.$f->onserver_filename);
             $f->delete();    
         }
 
