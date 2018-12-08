@@ -14,6 +14,8 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
+    'fcm_url'   => 'https://fcm.googleapis.com/fcm/send',
+    'fcm_api'   => 'AAAARrgoTM4:APA91bGDwP8y48JZzB6r0iRmnHutuhoUBDsVRJA9WccGX6FkvHplG2WQHRfg5cCCr9Bxch9toWQ4DLYNujyMUAdhZlNGPe69RTWB1M_pFO3FrEDEXmDH-8E-6NA0CYxL-99NFJKrYI1q',
 
     /*
     |--------------------------------------------------------------------------

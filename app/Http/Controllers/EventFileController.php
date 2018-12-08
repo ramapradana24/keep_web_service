@@ -12,8 +12,6 @@ use File;
 
 class EventFileController extends Controller
 {
-    private $API_KEY = 'AIzaSyCV4FAcIMDS28I0fKfjqHP_uOKn8BvlvNc';
-    private $FCM_URL = 'https://fcm.googleapis.com/fcm/send';
 
     public function store(Request $request){
         if(!$request->hasFile("file")){
@@ -256,5 +254,57 @@ class EventFileController extends Controller
         $filePath = public_path() . "/file/" . $file->onserver_filename;
         $header = array('Content-Type: application/*');
         return response()->download($filePath, $file->eventfile_title, $header);
+    }
+
+    public function sendNotif(){
+        $headers = array(
+            'Authorization: key='. config('app.fcm_api'),
+            'Content-Type: application/json'
+        );
+
+        $fields = array(
+            'to' => 'dpFy1Y87Ar8:APA91bEAIb8ohBKhjYpK-aVlv55b2YK1x23is3wWnfH7BZpb8nJ6Uh8Y48OWyzLKnS1mPATkFXGFJGk06Zq9l3BQt_Lku9kQxQ8-uXASC6_VHk5tVG_DkZhMbwW7AjJ_1zijL49q9tie',
+            // 'registration_ids'=> [''],
+            'notification' => array(
+                'title' => 'Keep',
+                'body' => 'Testing',
+                'sound'=>'default'
+            )
+        );
+
+        $ch = curl_init();
+ 
+        // Set the url, number of POST vars, POST data
+        curl_setopt($ch, CURLOPT_URL,config('app.fcm_url'));
+
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        // Disabling SSL Certificate support temporarily
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+
+        // Execute post
+        $result = curl_exec($ch);
+        if($result === FALSE){
+            die('Curl failed: ' . curl_error($ch));
+        }
+
+        // Close connection
+        curl_close($ch);
+                        
+        // $curl_session = curl_init();
+        // curl_setopt($curl_session, CURLOPT_URL,config('app.fcm_url'));
+        // curl_setopt($curl_session, CURLOPT_POST, true);
+        // curl_setopt($curl_session, CURLOPT_HTTPHEADER, $headers);
+        // curl_setopt($curl_session, CURLOPT_RETURNTRANSFER, true);
+        // curl_setopt($curl_session, CURLOPT_SSL_VERIFYPEER, false);
+        // curl_setopt($curl_session, CURLOPT_POSTFIELDS, json_encode($fields));
+        // $result = curl_exec($curl_session);
+        // curl_close($curl_session);
+
+        return 'send';
     }
 }
