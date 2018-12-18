@@ -209,6 +209,33 @@ class EventController extends Controller
             }
         }
 
+        $invitedFriend = User::whereIn($request->users)->get();
+        $registeredTo = $invitedFriend->pluck('user_fcm');
+
+        $headers = array(
+            'Authorization: key='.config('app.fcm_api'),
+            'Content-Type: application/json'
+        );
+
+        $fields = array(
+            'registration_ids'=>$registeredTo,
+            'notification' => array(
+                'title' => "Keep",
+                'body' => "You are invited to " . Event::find($eventId)->event_name,
+                'sound'=>'default'
+            )
+        );
+
+        $curl_session = curl_init();
+        curl_setopt($curl_session, CURLOPT_URL,config('app.fcm_url'));
+        curl_setopt($curl_session, CURLOPT_POST, true);
+        curl_setopt($curl_session, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($curl_session, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl_session, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl_session, CURLOPT_POSTFIELDS, json_encode($fields));
+        $result = curl_exec($curl_session);
+        curl_close($curl_session);
+
         return response()->json([
             'status'    => true,
             'msg'       => 'Success invite friend!'
