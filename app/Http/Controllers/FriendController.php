@@ -73,7 +73,7 @@ class FriendController extends Controller
                 // 'registration_ids'=>$registeredTo,
                 'notification' => array(
                     'title' => "Keep",
-                    'body' => "You are invited to " . Event::find($eventId)->event_name,
+                    'body' => $user->user_name " recently add you as a friend.",
                     'sound'=>'default'
                 )
             );
