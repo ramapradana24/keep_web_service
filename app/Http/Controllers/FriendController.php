@@ -63,6 +63,31 @@ class FriendController extends Controller
         $friendship->user_id = $user->user_id;
         $friendship->user_friend_id = $userid;
         if($friendship->save()){
+            $headers = array(
+                'Authorization: key='.config('app.fcm_api'),
+                'Content-Type: application/json'
+            );
+
+            $fields = array(
+                'to'    => User::find($userid)->user_fcm,
+                // 'registration_ids'=>$registeredTo,
+                'notification' => array(
+                    'title' => "Keep",
+                    'body' => "You are invited to " . Event::find($eventId)->event_name,
+                    'sound'=>'default'
+                )
+            );
+
+            $curl_session = curl_init();
+            curl_setopt($curl_session, CURLOPT_URL,config('app.fcm_url'));
+            curl_setopt($curl_session, CURLOPT_POST, true);
+            curl_setopt($curl_session, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($curl_session, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl_session, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($curl_session, CURLOPT_POSTFIELDS, json_encode($fields));
+            $result = curl_exec($curl_session);
+            curl_close($curl_session);
+
             return response()->json([
                 'status'    => true,
                 'msg'       => 'You are now friend!'
