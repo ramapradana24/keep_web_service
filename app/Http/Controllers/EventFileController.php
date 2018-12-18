@@ -64,7 +64,7 @@ class EventFileController extends Controller
                 );
 
                 $fields = array(
-                    'registration_ids'=>$registeredTo,
+                    'registration_ids'=>$users->pluck('user_fcm'),
                     'notification' => array(
                         'title' => "Keep",
                         'body' => $user->user_name . ' recently added new '. $eventFile->eventfile_title .' in ' . Event::find($request->event_id)->event_name,
@@ -170,7 +170,7 @@ class EventFileController extends Controller
                 );
 
                 $fields = array(
-                    'registration_ids'=>$registeredTo,
+                    'registration_ids'=>$users->pluck('user_fcm'),
                     'notification' => array(
                         'title' => "Keep",
                         'body' => $user->user_name . ' recently added new '. $eventFile->eventfile_title .' in ' . Event::find($request->event_id)->event_name,

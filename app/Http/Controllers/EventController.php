@@ -209,7 +209,7 @@ class EventController extends Controller
             }
         }
 
-        $invitedFriend = User::whereIn($request->users)->get();
+        $invitedFriend = User::whereIn('user_id', $request->users)->get();
         $registeredTo = $invitedFriend->pluck('user_fcm');
 
         $headers = array(
